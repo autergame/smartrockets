@@ -1,8 +1,7 @@
 function createGraph(graphX, graphY, graphWidth, graphHeight,
-	legends = 'Need legend', types = ['Need type'])
+	legends = 'Need legend', types = 'Need type', colorVal = 'default')
 {
 		var pts = [];
-		var nLines = 0;
 
 		var xdat = {
 			min: Infinity,
@@ -14,14 +13,27 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 			max: -Infinity
 		};
 
-		var styles = ['green', 'blue', 'cyan', 'magenta',
-			'black', 'purple', 'aqua', 'olive', 'lime', 'navy'];
+		if (!Array.isArray(legends)) legends = [legends];
 
-		if (Array.isArray(legends)) {
-			nLines = legends.length;
+		if (!Array.isArray(types)) types = [types];
+
+		var nLines = legends.length;
+
+		if (types.length !== nLines) {
+			console.log('graph error: legends/types length mismatch');
+			return;
+		}
+
+		var useColor = false;
+		if (!colorVal || colorVal == 'default' || 
+		    (Array.isArray(colorVal) && colorVal.length != nLines)) {
+				colorVal = [
+					'green', 'blue', 'yellow', 'magenta', 
+					'purple', 'cyan', 'olive', 'lime', 'navy'
+				];
 		} else {
-			nLines = 1;
-			legends = [legends];
+			useColor = true;
+			if (!Array.isArray(colorVal)) colorVal = [colorVal];
 		}
 
 		function add(x, y)
@@ -85,14 +97,14 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 			var xticks = {
 				min: 0,
 				max: 1,
-				step: 0.2,
-				n: 6
+				step: 0,
+				n: 2
 			};
 			var yticks = {
 				min: 0,
 				max: 1,
-				step: 0.2,
-				n: 6
+				step: 0,
+				n: 2
 			};
 
 			function tocanvas(x, y)
@@ -129,6 +141,7 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 				line(pad, ypos, graphWidth - pad, ypos);
 			}
 
+			fill(230);
 			noStroke();
 			textAlign(CENTER, CENTER);
 			textSize(graphWidth / 50 + graphHeight / 50);
@@ -142,7 +155,8 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 			for (var i = 0; i < yticks.n; i++)
 			{
 				var ypos = i / (yticks.n - 1) * (graphHeight - 2 * pad) + pad;
-				var textStr = '' + ((yticks.n - 1 - i) * yticks.step + yticks.min).toFixed(4);
+				var yval = ((yticks.n - 1 - i) * yticks.step + yticks.min);
+				var textStr = '' + eToNumber(yval.toFixed(9));
 				text(textStr, -(textWidth(textStr) - 16), ypos);
 			}
 
@@ -155,7 +169,11 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 
 			for (var i = 0; i < nLines; i++)
 			{
-				stroke(styles[i % styles.length]);
+				if (useColor) {
+					stroke(colorVal[i]);
+				} else {
+					stroke(colorVal[i % colorVal.length]);
+				}
 				if (types[i] == 'rect') {
 					for (var j = 0; j < nPts; j++)
 					{
@@ -197,7 +215,7 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 						var pt0 = tocanvas(p.x, yticks.min);
 						line(pt.tx, pt.ty, pt0.tx, pt0.ty);
 					}
-				} else if (types[i] == 'linetozerotoline') {
+				} else if (types[i] == 'linetolinetozero') {
 					for (var j = 1; j < nPts; j++)
 					{
 						var p1 = pts[j];
@@ -242,7 +260,11 @@ function createGraph(graphX, graphY, graphWidth, graphHeight,
 
 			for (var i = 0; i < nLines; i++)
 			{
-				fill(styles[i % styles.length]);
+				if (useColor) {
+					fill(colorVal[i]);
+				} else {
+					fill(colorVal[i % colorVal.length]);
+				}
 				text(legends[i], (graphWidth - pad) - legendX, pad + legendY + (i + 1) * 16);
 			}
 

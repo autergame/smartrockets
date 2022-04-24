@@ -12,8 +12,12 @@ var target;
 var targetSize = 32;
 
 var maxforce = 0.2;
+
 var mutationRate = 0.01;
 var mutationRateHistory = [0, mutationRate];
+
+var maxFitnessHistory = [0];
+var minFitnessHistory = [0];
 
 var rocketSize = 16;
 var lineSize = rocketSize * 1.25;
@@ -29,7 +33,10 @@ var rh = 0;
 var speedSlider;
 var maxSpeedSlider = 100;
 
-var graph;
+var graphMutationRate;
+var graphMaxFitness;
+var graphMinFitness;
+var graphSize = 100;
 
 function setup()
 {
@@ -44,11 +51,15 @@ function setup()
 	rw = width / 2.5;
 	rh = height / 50;
 
-	var graphSizeX = 300;
-	var graphSizeY = 200;
+	var graphSizeX = width / 4;
+	var graphSizeY = height / 3;
 
-	graph = createGraph(width - graphSizeX, height - graphSizeY, graphSizeX, graphSizeY,
-		['Mutation rate'], ['linetozerotoline']);
+	graphMutationRate = createGraph(width - graphSizeX, height - graphSizeY,
+		graphSizeX, graphSizeY, 'Mutation rate', 'line', 'green');
+	graphMaxFitness = createGraph(width - graphSizeX, height - graphSizeY * 3,
+		graphSizeX, graphSizeY, 'Maximum Fitness', 'line', 'blue');
+	graphMinFitness = createGraph(width - graphSizeX, height - graphSizeY * 2,
+		graphSizeX, graphSizeY, 'Minimum Fitness', 'line', 'cyan');
 
 	speedSlider = createSlider(1, maxSpeedSlider, 1);
 }
@@ -84,6 +95,8 @@ function draw()
 		//if (generation % 10 == 0) {
 
 			mutationRateHistory.push(mutationRate);
+			maxFitnessHistory.push(population.maxFitness);
+			minFitnessHistory.push(population.minFitness);
 		//}
 	}
 
@@ -92,21 +105,39 @@ function draw()
 
 	ellipse(target.x, target.y, targetSize, targetSize);
 
-	if (mutationRateHistory.length > 100) {
+	if (mutationRateHistory.length > graphSize) {
 		mutationRateHistory.splice(0, 1);
 	}
+	if (maxFitnessHistory.length > graphSize) {
+		maxFitnessHistory.splice(0, 1);
+	}
+	if (minFitnessHistory.length > graphSize) {
+		minFitnessHistory.splice(0, 1);
+	}
 
-	graph.reset();
+	graphMutationRate.reset();
+	graphMaxFitness.reset();
+	graphMinFitness.reset();
 	for (var i = 0; i < mutationRateHistory.length; i++)
 	{
-		graph.add(i, [mutationRateHistory[i]]);
+		graphMutationRate.add(i, mutationRateHistory[i]);
 	}
-	graph.draw();
+	for (var i = 0; i < maxFitnessHistory.length; i++)
+	{
+		graphMaxFitness.add(i, maxFitnessHistory[i]);
+	}
+	for (var i = 0; i < minFitnessHistory.length; i++)
+	{
+		graphMinFitness.add(i, minFitnessHistory[i]);
+	}
+	graphMutationRate.draw();
+	graphMaxFitness.draw();
+	graphMinFitness.draw();
 
 	fill(255);
 	noStroke();
 
-	var textSizeFont = width / 100 + height / 50;
+	var textSizeFont = width / 110 + height / 60;
 
 	push();
 	translate(0, height - textSizeFont * 12);
@@ -129,11 +160,11 @@ function draw()
 				'Finished: ' + finished + '\n' +
 				'Generation: ' + generation + '\n' +
 				'Lifespan: ' + countIndex + '/' + lifespan + '\n' +
-				'Minimum Distance: ' + population.minDistance + '\n' +
 				'Maximum Distance: ' + population.maxDistance + '\n' +
+				'Minimum Distance: ' + population.minDistance + '\n' +
 				'Mutation Rate: ' + eToNumber(mutationRate.toFixed(15)) + '\n' +
-				'Minimum Fitness: ' + eToNumber(population.minFitness.toFixed(15)) + '\n' +
-				'Maximum Fitness: ' + eToNumber(population.maxFitness.toFixed(15)) + '\n';
+				'Maximum Fitness: ' + eToNumber(population.maxFitness.toFixed(15)) + '\n' +
+				'Minimum Fitness: ' + eToNumber(population.minFitness.toFixed(15)) + '\n';
 	text(textAll, 10, 0);
 	pop();
 
